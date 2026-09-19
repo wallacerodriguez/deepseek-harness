@@ -32,6 +32,7 @@ session-end edge that closes the session record.
 | `tools/pre-execute` | `pre-tool-use` | Observe-only, always delegates |
 | `tools/post-execute` | `post-tool-use` | Observe-only, always delegates |
 | `agent/turn-stopping` | `stop` | Turn boundary |
+| `session/event` (`compaction/start`) | `pre-compact` | Consolidation trigger mid-session |
 | `session/disposed` | `session-end` | Closes the session record for consolidation |
 
 ## Wire format
@@ -72,6 +73,41 @@ reloads the plugin live — no harness restart.
 The ai-memory server must already be running (`ai-memory serve --transport http
 --bind 127.0.0.1:49374`). If it is not, this plugin degrades to a no-op and logs
 one warning per distinct cause; capture resumes when the server returns.
+
+## Making sessions become pages
+
+Capturing events is only half the pipeline. ai-memory stores raw observations
+first and compiles them into wiki pages on a **consolidation trigger**, so
+without a trigger a session accumulates rows that never become searchable pages.
+
+Two triggers are relevant, and neither is on by default:
+
+- **Compaction.** Handled by this plugin through the `session/event` feed.
+  Note that `compaction/*` are session *log* events appended by
+  `compaction-basic`, not interception points, so `ctx.on` never sees them
+  directly — the post-commit append feed is the only observation channel.
+- **Session end.** Opt in on the **server**, not here:
+
+  ```
+  AI_MEMORY_CONSOLIDATE_ON_SESSION_END
+  ```
+
+  This is a server-side value and applies to every agent using that server, not
+  just DSH.
+
+  Set it to a **boolean spelling** (`true`). `1` fails at startup:
+
+  ```
+  Error: loading configuration
+  Caused by: invalid type: found unsigned int `1`, expected a boolean
+    for key "CONSOLIDATE_ON_SESSION_END" in `AI_MEMORY_` environment variable(s)
+  ```
+
+  The failure is loud and the server refuses to start, so verify the server came
+  back up after restarting it.
+
+With an LLM provider disabled you still get mechanical session pages; the
+distilled concept/gotcha/rule pages need `AI_MEMORY_LLM_PROVIDER` configured.
 
 ## Configuration
 

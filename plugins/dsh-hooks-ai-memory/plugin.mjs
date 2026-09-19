@@ -215,6 +215,23 @@ export function apply(ctx, config = {}) {
     }
   })
 
+  // --- PreCompact ---------------------------------------------------------
+  // `compaction/*` are session log events, not interception points, so the
+  // post-commit append feed is the only way to observe them. ai-memory treats
+  // PreCompact as a consolidation trigger, which turns accumulated observations
+  // into a wiki page mid-session instead of only at session end.
+  ctx.on('session/event', (session, event) => {
+    try {
+      if (event?.type !== 'compaction/start') return
+      captureEvent('pre-compact', {
+        ...base(session, 'PreCompact'),
+        trigger: event?.data?.turn === null ? 'manual' : 'auto',
+      })
+    } catch (error) {
+      ctx.logger.warn(`hooks-ai-memory: pre-compact capture failed: ${String(error)}`)
+    }
+  })
+
   // --- SessionEnd ---------------------------------------------------------
   // ai-memory closes the session record here, which is what lets the session
   // become eligible for consolidation into wiki pages.
