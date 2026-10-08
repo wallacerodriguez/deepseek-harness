@@ -86,6 +86,12 @@ describe('Messages request conversion', () => {
     expect(body([assistant([call()]), minimal]).messages[1]?.content[0]).toEqual({ type: 'tool_result', tool_use_id: 'a', content: [] })
   })
 
+  it('moves a tool call behind text streamed after it so the result stays immediately after', () => {
+    const messages = [user(), assistant([{ type: 'reasoning', text: 'thinking' }, call(), { type: 'text', text: '\n' }]), result()]
+    expect(body(messages).messages[1]?.content.map(block => block.type)).toEqual(['thinking', 'text', 'tool_use'])
+    expect(body(messages).messages[1]?.content.at(-1)).toMatchObject({ type: 'tool_use', id: 'a' })
+  })
+
   it('collects leading system text and maps tools, stop sequences and explicit output cap', () => {
     const system = createMessage({ role: 'system', source: { kind: 'plugin', plugin: 'test' }, content: [{ type: 'text', text: 'instructions' }] })
     expect(body([system, user()], { system: 'top', maxTokens: 123, stop: ['END'], tools: [{ name: 'read', description: 'Read a file', parameters: { type: 'object' } }] })).toMatchObject({

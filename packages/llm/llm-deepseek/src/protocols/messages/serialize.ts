@@ -25,7 +25,7 @@ function toolInput(raw: string): Record<string, unknown> {
 
 function assistant(message: Message, model: string, onReplayDegrade?: (reason: string) => void): WireBlock[] {
   const replay = readReplay(message, model, onReplayDegrade)
-  return message.content.map((block, index): WireBlock => {
+  const blocks = message.content.map((block, index): WireBlock => {
     switch (block.type) {
       case 'text': return { type: 'text', text: block.text }
       case 'reasoning': return {
@@ -36,6 +36,10 @@ function assistant(message: Message, model: string, onReplayDegrade?: (reason: s
       default: return unsupported(`assistant content ${block.type}`)
     }
   })
+  // Messages requires every tool_use to be the last block of its assistant turn
+  // so the tool_result that follows is immediately after it. A durable assistant
+  // message can carry text the model streamed after the call.
+  return [...blocks.filter(block => block.type !== 'tool_use'), ...blocks.filter(block => block.type === 'tool_use')]
 }
 
 /** Serialize one complete request using already prepared image bytes.
