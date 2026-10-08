@@ -91,6 +91,20 @@
     - id: llm-retry
       name: '@deepseek-ai/dsh-llm-retry'
 
+    # Mounted after `llm-retry` on purpose: the waterfall runs registered order,
+    # and `llm-retry` returns its own retry without delegating, so a route's
+    # local retry budget is spent before rotation reaches another model.
+    - id: llm-fallback
+      name: '@deepseek-ai/dsh-llm-fallback'
+      config:
+        chains:
+          - - provider: nvidia
+              model: nvidia/nemotron-3-ultra-550b-a55b
+            - provider: nvidia
+              model: nvidia/nemotron-3-super-120b-a12b
+            - provider: nvidia
+              model: nvidia/nemotron-3.5-lightning-30b-a3b
+
     # User-settings document (`$DSH_HOME/settings.yaml`, hot-reloaded): a
     # `llm-deepseek:` or `llm-pi-ai:` section there overrides the adapter entries
     # below without a restart, and is what the web Models page writes.

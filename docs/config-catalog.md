@@ -1239,6 +1239,51 @@ Depends on: [`ModelModality`](../packages/llm/llm/src/index.ts) · [`RetryPolicy
 
 Source: [`packages/llm/llm-deepseek/src/config.ts:25`](../packages/llm/llm-deepseek/src/config.ts)
 
+<a id="deepseek-aidsh-llm-fallback"></a>
+
+## `@deepseek-ai/dsh-llm-fallback`
+
+Requires: `agents` · `llm` · `sessionProjections`
+
+```ts config-catalog
+/** Automatic model-fallback policy for one composition. */
+export interface Config {
+  /**
+   * Ordered fallback chains, each an ordered list of exact routes. The plugin
+   * rotates from the current route to the next unused entry of the first chain
+   * that names it (default: none, which leaves the plugin dormant).
+   */
+  chains?: FallbackRoute[][]
+  /**
+   * Failure codes that start a rotation. `QUOTA` is deliberately absent by
+   * default: it is terminal and account-wide, so another model cannot help
+   * (default: `SERVER`, `RATE_LIMIT`).
+   */
+  retryableCodes?: string[]
+  /**
+   * Whether a candidate whose declared context window cannot hold the current
+   * request is skipped instead of used. A candidate route whose metadata cannot
+   * be resolved is skipped regardless of this setting (default: true).
+   */
+  respectContextWindow?: boolean
+  /**
+   * Rotation ceiling for one agent step. The owning chain length is the default,
+   * which the per-step used-route set already bounds (default: owning chain length).
+   */
+  maxRotationsPerStep?: number
+}
+
+/** One exact provider/model route in a configured fallback chain. */
+export interface FallbackRoute {
+  /** Registered provider route that owns the model. */
+  readonly provider: string
+  /** Provider-owned exact model id. */
+  readonly model: string
+}
+```
+
+Source: [`packages/llm/llm-fallback/src/index.ts:38`](../packages/llm/llm-fallback/src/index.ts)
+
 <a id="deepseek-aidsh-llm-pi-ai"></a>
 
 ## `@deepseek-ai/dsh-llm-pi-ai`
