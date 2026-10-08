@@ -94,6 +94,9 @@
     },
     {
       "path": "../../document/office-to-pdf"
+    },
+    {
+      "path": "../../api/opencode-usage-controller"
     }
   ]
 }

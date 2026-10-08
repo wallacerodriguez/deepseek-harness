@@ -19,6 +19,8 @@ import { formatTokensPerSecond } from './message-chrome.ts'
 import { assistantStepReading } from '../contract/turn-metrics.ts'
 import { formatCacheHitPercent, formatExactTokens, formatTokens } from './token-format.ts'
 import { MEASURE_STYLE, useStatDialog } from './stat-dialog.ts'
+import { currentSessionRoute } from './opencode-usage.ts'
+import { OpenCodeUsagePill, type OpencodeUsageInjected } from './OpenCodeUsagePill.tsx'
 import css from './StatsPills.module.css'
 import dialogCss from './stat-dialog.module.css'
 
@@ -126,7 +128,12 @@ export interface StatsPillsProps {
   useProjection: UseProjection
   /** The owning dock's locale seat. */
   t: ChatViewSlotProps['t']
+  /** Read the Host's subscription-usage answer; null while the namespace is absent. */
+  fetchOpencodeUsage: OpencodeUsageInjected['fetchOpencodeUsage']
 }
+
+/** The apply world's inject face for the stats dock row. */
+export type StatsPillsInjected = Pick<StatsPillsProps, 'fetchOpencodeUsage'>
 
 function exactCount(value: number, t: ChatViewSlotProps['t']): string {
   return t('message.turnUsage.count', { count: formatExactTokens(value, t) })
@@ -314,11 +321,15 @@ function UsagePill({ usage, t, dialog }: {
   )
 }
 
-export const StatsPills = memo(function StatsPills({ useChat, useProjection, t }: StatsPillsProps) {
+export const StatsPills = memo(function StatsPills({ useChat, useProjection, t, fetchOpencodeUsage }: StatsPillsProps) {
   const settledNodes = useChat(s => s.legacy.nodes)
+  // The latest billed turn's provider, through one change-gated primitive
+  // selector: the pill row neither subscribes to full node lists nor renders
+  // when the subscription's provider is not the session's current route.
+  const currentRoute = useChat(s => currentSessionRoute(s))
   const usage = useProjection('tokenUsage')
-  // One exclusive slot for both dialogs: opening either pill closes the other.
-  const [openPill, setOpenPill] = useState<'time' | 'usage' | null>(null)
+  // One exclusive slot for the three dialogs: opening any pill closes the others.
+  const [openPill, setOpenPill] = useState<'time' | 'usage' | 'opencode' | null>(null)
   // Every figure rides the durable sessionStats projection, so paging and
   // compaction cannot change any of them; an assembly without the unit falls
   // back to the window-scoped fold wholesale (same field names), paid only
@@ -349,6 +360,17 @@ export const StatsPills = memo(function StatsPills({ useChat, useProjection, t }
           dialog={{
             open: openPill === 'usage',
             setOpen: (open) => { setOpenPill(open ? 'usage' : null) },
+          }}
+        />
+      )}
+      {currentRoute !== null && (
+        <OpenCodeUsagePill
+          currentRoute={currentRoute}
+          fetchOpencodeUsage={fetchOpencodeUsage}
+          t={t}
+          dialog={{
+            open: openPill === 'opencode',
+            setOpen: (open) => { setOpenPill(open ? 'opencode' : null) },
           }}
         />
       )}

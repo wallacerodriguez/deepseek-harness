@@ -199,6 +199,28 @@ export interface Config {
 
 Source: [`packages/api/gateway/src/index.ts:119`](../packages/api/gateway/src/index.ts)
 
+<a id="deepseek-aidsh-api-opencode-usage-controller"></a>
+
+## `@deepseek-ai/dsh-api-opencode-usage-controller`
+
+Requires: `credentials`
+
+```ts config-catalog
+/** Controller deployment policy. */
+export interface Config {
+  /** Provider registry id whose routes this usage data describes. */
+  readonly providerId?: string
+  /** Credential reference the read authenticates with (`Authorization: Bearer`). */
+  readonly apiKeyEnv?: string
+  /** Subscription usage read URL; https only. */
+  readonly endpoint?: string
+  /** How long one answer (including an unavailable one) serves before the next read. */
+  readonly cacheTtlMs?: number
+}
+```
+
+Source: [`packages/api/opencode-usage-controller/src/index.ts:37`](../packages/api/opencode-usage-controller/src/index.ts)
+
 <a id="deepseek-aidsh-api-session-controller"></a>
 
 ## `@deepseek-ai/dsh-api-session-controller`

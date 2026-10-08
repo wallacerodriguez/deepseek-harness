@@ -118,6 +118,10 @@
     - id: workspace-controller
       name: '@deepseek-ai/dsh-api-workspace-controller'
 
+    # OpenCode Go subscription usage windows behind the web client's session pill.
+    - id: opencode-usage-controller
+      name: '@deepseek-ai/dsh-api-opencode-usage-controller'
+
     - id: cordis-host-runner
       name: '@deepseek-ai/dsh-cordis-host-runner'
 

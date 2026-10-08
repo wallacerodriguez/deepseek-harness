@@ -18,6 +18,7 @@ File-mention providers receive the viewed Session ID with the closing-turn owner
 - [System prompt row](#system-prompt-row)
 - [Turn token usage](#turn-token-usage)
 - [Completed-turn footer](#completed-turn-footer)
+- [Subscription usage pill](#subscription-usage)
 - [Turn Process Folding](#turn-process-folding)
 - [Scroll ownership](#scroll-ownership)
 - [Model Experience](#model-experience)
@@ -49,6 +50,11 @@ After Assistant replies settle, the completed-turn timing dialog omits TTFT and 
 ## Completed-turn footer
 
 The completed-turn action footer starts 20px below the preceding prose or extension content.
+
+<a id="session-stats-opencode"></a>
+## OpenCode Go usage pill
+
+Session stats split into three icon pills when the session's current billed route is the subscription's provider: a gauge pill (turn/step counts + output speed) opening the time-and-speed dialog, a database pill (total tokens + cache hit) opening the token-usage dialog, and a third pill visible only while the latest billed turn's attributed provider equals the subscription id the Host reports. It opens a dialog listing the rolling (5-hour), weekly, and monthly usage windows, each with its consumed percent and reset instant. The row polls the Host at the shared read cadence while the page is visible and renders nothing while an answer is outstanding or the namespace is absent.
 
 -----
 

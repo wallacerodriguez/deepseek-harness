@@ -28,7 +28,7 @@ import { EMPTY_CHAT_SNAPSHOT } from './contract/snapshot.ts'
 import { ApprovalCommand } from './chat/ApprovalCommand.tsx'
 import { ChatView } from './chat/ChatView.tsx'
 import { registerChatNodeRenderers } from './chat/register-node-renderers.ts'
-import { StatsPills } from './chat/StatsPills.tsx'
+import { StatsPills, type StatsPillsInjected } from './chat/StatsPills.tsx'
 import { registerConversationNodes } from './conversation-nodes/register.ts'
 import { en, NS, zh } from './locale.ts'
 import { TranscriptViewRow, type TranscriptViewRowInjected } from './settings/TranscriptViewRow.tsx'
@@ -48,7 +48,7 @@ const CHAT_NODE_INJECT: ChatNodeTurnDataInjected = {
 /** Services required by the Chat target and its presentation registrations. */
 export const inject = [
   'slots', 'sessions', 'uiWorkspace', 'uiSession', 'uiConversation', 'locale',
-  'settingsScope', 'remote', 'remote.session', 'sidebarRight',
+  'settingsScope', 'remote', 'remote.session', 'remote.opencodeUsage', 'sidebarRight',
 ]
 
 /**
@@ -178,7 +178,22 @@ export function apply(ctx: Context): void {
 
   ctx.slots.inject('conversation.composer.dock', () =>
     ctx.slots.register({
-      name: 'conversation.composer.dock', id: 'stats', order: 0, locale: NS,
+      name: 'conversation.composer.dock',
+      id: 'stats',
+      order: 0,
+      locale: NS,
+      inject: (): StatsPillsInjected => ({
+        fetchOpencodeUsage: async () => {
+          try {
+            const answer = await ctx.remote.opencodeUsage.usage()
+            return answer.ok ? answer.value : null
+          } catch {
+            // The namespace can be absent or the transport down; the pill
+            // renders nothing until a later read answers.
+            return null
+          }
+        },
+      }),
     }, StatsPills))
 
   ctx.slots.inject('conversation.approval.detail', () =>
